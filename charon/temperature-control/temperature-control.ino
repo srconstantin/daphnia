@@ -2,6 +2,15 @@
 //  TEMPERATURE CONTROL LOOP
 // -----------------------------------------
 //
+// GND ---- power supply ---- arduino pin ---- relay in ---- heat sink --- TMP36
+// D2   (arduino) -->-- IN1 (relay)
+// 5V   (arduino) -->-- VCC (relay in)
+// A0   (arduino) -->-- signal pin (TMP36)
+// 3.3V (arduino) -->-- VCC (TMP36)
+// J1-1 (relay)   -->-- VCC (heat sink)
+// J1-3 (relay)   -->-- VCC  (power supply)
+//
+// -----------------------------------------
 // Average readings from a TMP36 thermistor and actuate a peltier coil.
 const int sensorPin = 14; // A0 = 14
 const int peltierOut = 2; // D2 = 2
