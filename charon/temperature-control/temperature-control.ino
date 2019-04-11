@@ -38,7 +38,7 @@ const float setpoint = 10.0; // °C
 float setpoint_hysteresis = 0.5; // °C
 
 // variable to track duration of peltier on and off-time
-int cooling_duration = 0;
+int peltier_duration = 0; // ms
 
 static int uart_putchar (char c, FILE *stream)
 {
@@ -74,7 +74,7 @@ void loop() {
   for (int n = 0; n < N_SAMPLES; n++) {
     sum += analogRead(sensorPin);
     delay(SAMPLE_FREQUENCY);
-    cooling_duration += SAMPLE_FREQUENCY;
+    peltier_duration += SAMPLE_FREQUENCY;
   }
   
   temperature = readingToCelsius((sum / N_SAMPLES));
@@ -82,17 +82,18 @@ void loop() {
 
   if (temperature > (setpoint + setpoint_hysteresis)) {
     digitalWrite(peltierOut, LOW);
-    Serial.print("Peltiers ON: off for %.1f seconds\n");
-    cooling_duration = 0;
+    float dur_sec = peltier_duration / 1000.0;
+    printf("Peltiers ON: off for %.1f seconds\n", dur_sec);
+    peltier_duration = 0;
   }
-  else if (temperature < (setpoint - setpoint_hysteresis)){
+  else if (temperature < (setpoint - setpoint_hysteresis)) {
     digitalWrite(peltierOut, HIGH);
-    float dur_sec = cooling_duration / 1000.0;
+    float dur_sec = peltier_duration / 1000.0;
     printf("Peltiers OFF: on for %.1f seconds\n", dur_sec);
-    cooling_duration = 0;
+    peltier_duration = 0;
   }
   
   delay(LOOP_DELAY);
-  cooling_duration += LOOP_DELAY;
+  peltier_duration += LOOP_DELAY;
 }
 
