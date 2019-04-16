@@ -16,6 +16,9 @@
 
 #include <stdio.h>
 
+#define TEMP_FORMAT_WIDTH 5 // temperature format specifier width
+#define TEMP_FORMAT_PREC 2 // temperature format specifier precision
+
 // file struct for printf redirection
 static FILE uart = {0};
 
@@ -49,8 +52,6 @@ static int uart_putchar (char c, FILE *stream)
 void setup() {
   pinMode(peltierOut, OUTPUT);
   pinMode(sensorPin, INPUT);
-
-  analogReference(INTERNAL); // set ADC to internal bandgap Vref of 1.1V 
   
   Serial.begin(9600);
   
@@ -60,8 +61,8 @@ void setup() {
 }
 
 float readingToCelsius(float analogReading) {
-  // Convert reading to mV -> 1100 millivolts / 1024 units = 1.074 per unit
-  float millivolts = analogReading * 1.074;
+  // Convert reading to mV -> 5000 millivolts / 1024 units = 4.882 per unit
+  float millivolts = analogReading * 4.882;
   
   // The TMP36 reads 500 mV at 0°C and has an output scale factor of 10 mV/°C.
   // so [reading in mV - 500 / 10] = [reading in V * 100 - 50] = °C
@@ -78,19 +79,25 @@ void loop() {
   }
   
   temperature = readingToCelsius((sum / N_SAMPLES));
-  printf("Temp: %+2.2f °C\n", temperature);
+
+  char temp_string[6];
+  dtostrf(temperature, TEMP_FORMAT_WIDTH, TEMP_FORMAT_PREC, temp_string); // alternative function to properly format temperature strings
+
+  printf("Temp: %s °C\n", temp_string);
 
   if (temperature > (setpoint + setpoint_hysteresis)) {
-    digitalWrite(peltierOut, LOW);
-    float dur_sec = peltier_duration / 1000.0;
-    printf("Peltiers ON: off for %.1f seconds\n", dur_sec);
-    peltier_duration = 0;
+    if (digitalRead(peltierOut) == HIGH) {
+      digitalWrite(peltierOut, LOW);
+      printf("Peltiers ON: off for %d milliseconds\n", peltier_duration);
+      peltier_duration = 0;
+    }
   }
   else if (temperature < (setpoint - setpoint_hysteresis)) {
-    digitalWrite(peltierOut, HIGH);
-    float dur_sec = peltier_duration / 1000.0;
-    printf("Peltiers OFF: on for %.1f seconds\n", dur_sec);
-    peltier_duration = 0;
+    if (digitalRead(peltierOut) == LOW) {
+      digitalWrite(peltierOut, HIGH);
+      printf("Peltiers OFF: on for %d milliseconds\n", peltier_duration);
+      peltier_duration = 0;
+    }
   }
   
   delay(LOOP_DELAY);
