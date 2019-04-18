@@ -41,7 +41,7 @@ const float setpoint = 10.0; // °C
 float setpoint_hysteresis = 0.5; // °C
 
 // variable to track duration of peltier on and off-time
-int peltier_duration = 0; // ms
+uint32_t peltier_duration = 0; // ms
 
 static int uart_putchar (char c, FILE *stream)
 {
@@ -83,7 +83,7 @@ void loop() {
   char temp_string[6];
   dtostrf(temperature, TEMP_FORMAT_WIDTH, TEMP_FORMAT_PREC, temp_string); // alternative function to properly format temperature strings
 
-  printf("Temp: %s °C\n", temp_string);
+  printf("%s\n", temp_string);
 
   if (temperature > (setpoint + setpoint_hysteresis)) {
     if (digitalRead(peltierOut) == HIGH) {
