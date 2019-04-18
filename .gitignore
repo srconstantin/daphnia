@@ -1,2 +1,3 @@
 charon/*.db
 charon/*.txt
+charon/temperature-control/build-uno/
